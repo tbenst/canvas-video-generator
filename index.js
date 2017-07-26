@@ -75,6 +75,7 @@ app.post('/render', function(req, res) {
     '-i', 'image-%010d.png',
     '-refs', '5',
     '-c:v', 'libx264',
+    '-pix_fmt', 'yuv420p',
     '-preset', 'veryslow',
     '-crf', '18',
     sprintf('%s/%s.mp4', OUTDIR, req.body.filename)
