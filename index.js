@@ -75,6 +75,7 @@ app.post('/render', function(req, res) {
     '-i', 'image-%010d.png',
     '-refs', '5',
     '-c:v', 'libx264',
+    '-pix_fmt', 'yuv420p',
     '-preset', 'veryslow',
     '-crf', '18',
     sprintf('%s/%s.mp4', OUTDIR, req.body.filename)
@@ -82,14 +83,22 @@ app.post('/render', function(req, res) {
     cwd: oldTemp.name,
     stdio: 'inherit'
   });
+  ffmpeg.on('error', function(error) {
+    console.error('Error starting FFmpeg:', error.message);
+  });
   ffmpeg.on('close', function(code) {
-    console.log(sprintf('Finished rendering video. You can find it at %s/%s.mp4', OUTDIR, req.body.filename));
+    if (code !== 0) {
+      console.log('FFmpeg process closed with code', code);
+    } else {
+      console.log(sprintf('Finished rendering video. You can find it at %s/%s.mp4', OUTDIR, req.body.filename));
+    }
     if (NOCLEAN) {
       console.log(sprintf('Not cleaning temp files. You can find them in %s', oldTemp.name));
     } else {
       console.log(sprintf('Cleaning up temp files in %s', oldTemp.name));
       oldTemp.removeCallback();
     }
+    console.log('Done!');
   });
   tempDir = tmp.dirSync({unsafeCleanup: true});
   res.end();
